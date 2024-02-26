@@ -23,7 +23,6 @@ class Program
                 {
                     await DownloadFileAsync("https://www.abs.gov.au/" + fileLink, "C:\\Users\\Princcipal\\Desktop\\");
                 }
-
             }
         }
         else
@@ -59,6 +58,12 @@ class Program
         {
             try
             {
+                // Set user-agent header to mimic a web browser
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36");
+
+                // Set referer header if necessary
+                httpClient.DefaultRequestHeaders.Referrer = new Uri(url);
+
                 HttpResponseMessage response = await httpClient.GetAsync(url);
 
                 if (response.IsSuccessStatusCode)
