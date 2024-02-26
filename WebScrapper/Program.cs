@@ -54,34 +54,24 @@ class Program
     static async Task DownloadFileAsync(string url, string directory)
     {
         string fileName = Path.GetFileName(url);
-        string destinationPath = Path.Combine(directory, fileName);
-
+        
         using (HttpClient httpClient = new HttpClient())
         {
             try
             {
-                // Send a GET request to the URL
                 HttpResponseMessage response = await httpClient.GetAsync(url);
 
-                // Check if the request was successful
                 if (response.IsSuccessStatusCode)
                 {
-                    // Get the content as a stream
-                    using (Stream contentStream = await response.Content.ReadAsStreamAsync())
-                    {
-                        // Create a FileStream to write the content to a file
-                        using (FileStream fileStream = File.Create("downloaded-file.txt"))
-                        {
-                            // Copy the content from the stream to the file
-                            await contentStream.CopyToAsync(fileStream);
-                        }
-                    }
+                    byte[] fileBytes = await response.Content.ReadAsByteArrayAsync();
 
-                    Console.WriteLine("File downloaded successfully.");
+                    string filePath = Path.Combine(directory, fileName);
+                    System.IO.File.WriteAllBytes(filePath, fileBytes);
+                    Console.WriteLine($"File downloaded successfully to: {filePath}");
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to download file. Status code: {response.StatusCode}");
+                    Console.WriteLine($"Failed to download the file. Status code: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
