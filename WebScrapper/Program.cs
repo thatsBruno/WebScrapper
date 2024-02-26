@@ -1,10 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using HtmlAgilityPack;
-using System.Net;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
 
 class Program
 {
@@ -24,8 +19,10 @@ class Program
             // Step 4: Download the files
             foreach (string fileLink in fileLinks)
             {
-                if(fileLink.Contains("01.xls"))
-                DownloadFile("https://www.abs.gov.au/" + fileLink, "C:\\Users\\Princcipal\\Desktop\\");
+                if (fileLink.Contains("01.xls"))
+                {
+                    await DownloadFileAsync("https://www.abs.gov.au/" + fileLink, "C:\\Users\\Princcipal\\Desktop\\");
+                }
 
             }
         }
@@ -54,21 +51,42 @@ class Program
         return links;
     }
 
-    static void DownloadFile(string url, string directory)
+    static async Task DownloadFileAsync(string url, string directory)
     {
         string fileName = Path.GetFileName(url);
         string destinationPath = Path.Combine(directory, fileName);
 
-        using (WebClient client = new WebClient())
+        using (HttpClient httpClient = new HttpClient())
         {
             try
             {
-                client.DownloadFile(url, destinationPath);
-                Console.WriteLine($"File downloaded: {fileName}");
+                // Send a GET request to the URL
+                HttpResponseMessage response = await httpClient.GetAsync(url);
+
+                // Check if the request was successful
+                if (response.IsSuccessStatusCode)
+                {
+                    // Get the content as a stream
+                    using (Stream contentStream = await response.Content.ReadAsStreamAsync())
+                    {
+                        // Create a FileStream to write the content to a file
+                        using (FileStream fileStream = File.Create("downloaded-file.txt"))
+                        {
+                            // Copy the content from the stream to the file
+                            await contentStream.CopyToAsync(fileStream);
+                        }
+                    }
+
+                    Console.WriteLine("File downloaded successfully.");
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to download file. Status code: {response.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to download {fileName}: {ex.Message}");
+                Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
     }
