@@ -1,37 +1,69 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using HtmlAgilityPack;
+using ExcelDataReader;
+using System.Data;
 
 class Program
 {
     static async Task Main(string[] args)
     {
-        // Step 1: Scrape the initial page for links
         List<string> initialLinks = ScrapeLinks("https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia");
 
-        // Step 2: Choose a link to navigate to
         string targetLink = initialLinks.Count > 0 ? initialLinks[0] : null;
 
         if (targetLink != null)
         {
-            // Step 3: Scrape the target page for file download links
             List<string> fileLinks = ScrapeLinks("https://www.abs.gov.au/" + targetLink);
 
-            // Step 4: Download the files
             foreach (string fileLink in fileLinks)
             {
                 if (fileLink.Contains("01.xls"))
                 {
-                    await DownloadFileAsync("https://www.abs.gov.au/" + fileLink, "C:\\Users\\Princcipal\\Desktop\\");
+                    await DownloadFileAsync("https://www.abs.gov.au/" + fileLink, "C:\\Users\\Princcipal\\Desktop\\"); 
                 }
-            }
+            } 
         }
         else
         {
             Console.WriteLine("No links found on the initial page.");
         }
+
+        // read and save the table called Data1 into a .csv from the file
+        DataTable data = ReadExcelTable("C:\\Users\\Princcipal\\Desktop\\", "Data1");
     }
 
-    static List<string> ScrapeLinks(string url)
+
+    #region Helper methods
+
+    private static DataTable ReadExcelTable(string filePath, string tableName)
+    {
+        // Create a DataTable to hold the data
+        DataTable table = new DataTable();
+
+        // Create a FileStream to read the Excel file
+        using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read))
+        {
+            // Create an instance of ExcelDataReader for .xlsx files
+            using (var reader = ExcelReaderFactory.CreateReader(stream))
+            {
+                // Read the Excel file into a DataSet
+                var result = reader.AsDataSet(new ExcelDataSetConfiguration()
+                {
+                    ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
+                    {
+                        UseHeaderRow = true // Use the first row as column names
+                    }
+                });
+
+                // Get the specified table from the DataSet
+                table = result.Tables[tableName];
+            }
+        }
+
+        return table;
+    }
+
+    private static List<string> ScrapeLinks(string url)
     {
         List<string> links = new List<string>();
 
@@ -50,7 +82,7 @@ class Program
         return links;
     }
 
-    static async Task DownloadFileAsync(string url, string directory)
+    private static async Task DownloadFileAsync(string url, string directory)
     {
         string fileName = Path.GetFileName(url);
         
@@ -70,7 +102,7 @@ class Program
                 {
                     byte[] fileBytes = await response.Content.ReadAsByteArrayAsync();
 
-                    string filePath = Path.Combine(directory, fileName);
+                    string filePath = Path.Combine(directory, fileName); // TODO store the file inside the project
                     System.IO.File.WriteAllBytes(filePath, fileBytes);
                     Console.WriteLine($"File downloaded successfully to: {filePath}");
                 }
@@ -85,4 +117,5 @@ class Program
             }
         }
     }
+    #endregion
 }
