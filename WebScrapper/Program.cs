@@ -10,6 +10,7 @@ class Program
         List<string> initialLinks = ScrapeLinks("https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia");
 
         string targetLink = initialLinks.Count > 0 ? initialLinks[0] : null;
+        var filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
         if (targetLink != null)
         {
@@ -19,7 +20,7 @@ class Program
             {
                 if (fileLink.Contains("01.xls"))
                 {
-                    await DownloadFileAsync("https://www.abs.gov.au/" + fileLink, "C:\\Users\\Princcipal\\Desktop\\"); 
+                    await DownloadFileAsync("https://www.abs.gov.au/" + fileLink, filePath); 
                 }
             } 
         }
@@ -29,7 +30,17 @@ class Program
         }
 
         // read and save the table called Data1 into a .csv from the file
-        DataTable data = ReadExcelTable("C:\\Users\\Princcipal\\Desktop\\", "Data1");
+        DataTable data = ReadExcelTable(filePath, "Data1");
+
+        // test 
+        foreach (DataRow row in data.Rows)
+        {
+            foreach (DataColumn col in data.Columns)
+            {
+                Console.Write(row[col].ToString() + "\t");
+            }
+            Console.WriteLine();
+        }
     }
 
 
