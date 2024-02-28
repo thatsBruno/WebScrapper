@@ -1,11 +1,14 @@
 ﻿using HtmlAgilityPack;
 using ExcelDataReader;
 using System.Data;
+using System.Text;
 
 class Program
 {
     static async Task Main(string[] args)
     {
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
         List<string> initialLinks = ScrapeLinks("https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia");
 
         string targetLink = initialLinks.Count > 0 ? initialLinks[0] : null;
@@ -37,7 +40,7 @@ class Program
         }
 
         // read and save the table called Data1 into a .csv from the file
-        DataTable data = ReadExcelTable(filePath, "Data1");
+        DataTable data = ReadExcelTable(filePath + "\\data.xlsx", "Data1");
 
         // test 
         foreach (DataRow row in data.Rows)
@@ -55,25 +58,23 @@ class Program
 
     private static DataTable ReadExcelTable(string filePath, string tableName)
     {
-        // Create a DataTable to hold the data
         DataTable table = new DataTable();
 
-        // Create a FileStream to read the Excel file
         using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read))
         {
-            // Create an instance of ExcelDataReader for .xlsx files
-            using (var reader = ExcelReaderFactory.CreateReader(stream))
+            using (var reader = ExcelReaderFactory.CreateReader(stream, new ExcelReaderConfiguration()
             {
-                // Read the Excel file into a DataSet
+                FallbackEncoding = Encoding.GetEncoding(1252) // Use the desired encoding (e.g., 1252)
+            }))
+            {
                 var result = reader.AsDataSet(new ExcelDataSetConfiguration()
                 {
                     ConfigureDataTable = (_) => new ExcelDataTableConfiguration()
                     {
-                        UseHeaderRow = true // Use the first row as column names
+                        UseHeaderRow = true
                     }
                 });
 
-                // Get the specified table from the DataSet
                 table = result.Tables[tableName];
             }
         }
@@ -102,7 +103,7 @@ class Program
 
     private static async Task DownloadFileAsync(string url, string directory)
     {
-        string fileName = Path.GetFileName(url);
+        string fileName = "data.xlsx";
         
         using (HttpClient httpClient = new HttpClient())
         {
