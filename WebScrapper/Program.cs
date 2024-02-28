@@ -1,5 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 using ExcelDataReader;
 using System.Data;
 
@@ -10,7 +9,15 @@ class Program
         List<string> initialLinks = ScrapeLinks("https://www.abs.gov.au/statistics/labour/employment-and-unemployment/labour-force-australia");
 
         string targetLink = initialLinks.Count > 0 ? initialLinks[0] : null;
-        var filePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        string dirPath = "Downloads";
+        string defaultPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
+
+        var filePath = Path.Combine(defaultPath, dirPath);
+
+        if (!Directory.Exists(filePath))
+        {
+            Directory.CreateDirectory(filePath);
+        }
 
         if (targetLink != null)
         {
