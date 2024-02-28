@@ -42,13 +42,13 @@ class Program
         // read and save the table called Data1 into a .csv from the file
         DataTable data = ReadExcelTable(filePath + "\\data.xlsx", "Data1");
 
-        ExportSeriesIdColumnAndRowToCsv(data, filePath);
+        ExportToCsv(data, filePath);
     }
 
 
     #region Helper methods
 
-    private static void ExportSeriesIdColumnAndRowToCsv(DataTable table, string filePath)
+    private static void ExportToCsv(DataTable table, string filePath)
     {
         // Create a StringBuilder to hold the CSV content
         StringBuilder stringBuilder = new StringBuilder();
