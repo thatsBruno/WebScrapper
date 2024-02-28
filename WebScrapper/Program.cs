@@ -48,16 +48,16 @@ class Program
 
     #region Helper methods
 
-    private static void ExportSeriesIdColumnAndRowToCsv(DataTable dt, string filePath)
+    private static void ExportSeriesIdColumnAndRowToCsv(DataTable table, string filePath)
     {
         // Create a StringBuilder to hold the CSV content
-        StringBuilder sb = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder();
 
         // Find the row that contains 'series id'
         int seriesIdRow = -1;
-        for (int i = 0; i < dt.Rows.Count; i++)
+        for (int i = 0; i < table.Rows.Count; i++)
         {
-            if (dt.Rows[i][0].ToString() == "Series ID")
+            if (table.Rows[i][0].ToString() == "Series ID")
             {
                 seriesIdRow = i;
                 break;
@@ -72,7 +72,7 @@ class Program
         }
 
         // Extract values from the first column starting from 'series id'
-        var columnValues = dt.AsEnumerable().Skip(seriesIdRow).Select(r =>
+        var columnValues = table.AsEnumerable().Skip(seriesIdRow).Select(r =>
         {
             if (r[0] is DateTime)
             {
@@ -85,25 +85,18 @@ class Program
         }).ToArray();
 
         // Append the values as a single row
-        sb.AppendLine(string.Join(",", columnValues));
+        stringBuilder.AppendLine(string.Join(",", columnValues));
 
         // Export the entire row (excluding the first column)
-        var rowValues = dt.Rows[seriesIdRow].ItemArray.Skip(1).Select(val =>
+        var rowValues = table.Rows[seriesIdRow].ItemArray.Skip(1).Select(val =>
         {
-            if (val is DateTime)
-            {
-                return ((DateTime)val).ToString("MMM-yyyy");
-            }
-            else
-            {
-                return val.ToString();
-            }
+            return val.ToString();
         }).ToArray();
 
-        sb.AppendLine(string.Join(",", rowValues));
+        stringBuilder.AppendLine(string.Join(",", rowValues));
 
         // Save to CSV file
-        File.WriteAllText(filePath + "\\data.csv", sb.ToString());
+        File.WriteAllText(filePath + "\\data.csv", stringBuilder.ToString());
     }
 
 
