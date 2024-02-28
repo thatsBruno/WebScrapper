@@ -42,19 +42,55 @@ class Program
         // read and save the table called Data1 into a .csv from the file
         DataTable data = ReadExcelTable(filePath + "\\data.xlsx", "Data1");
 
-        // test 
-        foreach (DataRow row in data.Rows)
-        {
-            foreach (DataColumn col in data.Columns)
-            {
-                Console.Write(row[col].ToString() + "\t");
-            }
-            Console.WriteLine();
-        }
+        ExportSeriesIdColumnToCsv(data, filePath);
     }
 
 
     #region Helper methods
+
+    private static void ExportSeriesIdColumnToCsv(DataTable dt, string filePath)
+    {
+        // Create a StringBuilder to hold the CSV content
+        StringBuilder sb = new StringBuilder();
+
+        // Find the row that contains 'series id'
+        int seriesIdRow = -1;
+        for (int i = 0; i < dt.Rows.Count; i++)
+        {
+            if (dt.Rows[i][0].ToString() == "Series ID")
+            {
+                seriesIdRow = i;
+                break;
+            }
+        }
+    
+        // If 'series id' was not found, return
+        if (seriesIdRow == -1)
+        {
+            Console.WriteLine("'series id' not found in the first column.");
+            return;
+        }
+
+        // Extract values from the first column starting from 'series id'
+        var columnValues = dt.AsEnumerable().Skip(seriesIdRow).Select(r =>
+        {
+            if (r[0] is DateTime)
+            {
+                return ((DateTime)r[0]).ToString("MMM-yyyy");
+            }
+            else
+            {
+                return r[0].ToString();
+            }
+        }).ToArray();
+
+        // Append the values as a single row
+        sb.AppendLine(string.Join(",", columnValues));
+
+        // Save to CSV file
+        File.WriteAllText(filePath + "\\data.csv", sb.ToString());
+    }
+
 
     private static DataTable ReadExcelTable(string filePath, string tableName)
     {
