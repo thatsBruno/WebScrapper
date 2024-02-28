@@ -42,13 +42,13 @@ class Program
         // read and save the table called Data1 into a .csv from the file
         DataTable data = ReadExcelTable(filePath + "\\data.xlsx", "Data1");
 
-        ExportSeriesIdColumnToCsv(data, filePath);
+        ExportSeriesIdColumnAndRowToCsv(data, filePath);
     }
 
 
     #region Helper methods
 
-    private static void ExportSeriesIdColumnToCsv(DataTable dt, string filePath)
+    private static void ExportSeriesIdColumnAndRowToCsv(DataTable dt, string filePath)
     {
         // Create a StringBuilder to hold the CSV content
         StringBuilder sb = new StringBuilder();
@@ -63,7 +63,7 @@ class Program
                 break;
             }
         }
-    
+
         // If 'series id' was not found, return
         if (seriesIdRow == -1)
         {
@@ -86,6 +86,21 @@ class Program
 
         // Append the values as a single row
         sb.AppendLine(string.Join(",", columnValues));
+
+        // Export the entire row (excluding the first column)
+        var rowValues = dt.Rows[seriesIdRow].ItemArray.Skip(1).Select(val =>
+        {
+            if (val is DateTime)
+            {
+                return ((DateTime)val).ToString("MMM-yyyy");
+            }
+            else
+            {
+                return val.ToString();
+            }
+        }).ToArray();
+
+        sb.AppendLine(string.Join(",", rowValues));
 
         // Save to CSV file
         File.WriteAllText(filePath + "\\data.csv", sb.ToString());
